@@ -6,7 +6,7 @@ def hapus_jadwal():
         data_jadwal = json.load(f)
 
     if not data_jadwal:
-        print("❌ Belum ada jadwal penerbangan untuk dihapus.")
+        print(" Belum ada jadwal penerbangan untuk dihapus.")
         return
 
     pilihan_jadwal = [
@@ -24,4 +24,4 @@ def hapus_jadwal():
     with open("jadwal.json", "w") as f:
         json.dump(data_jadwal, f, indent=4)
 
-    print(f"\n✅ Jadwal penerbangan {jadwal_dihapus['kode']} berhasil dihapus!")
+    print(f"\n Jadwal penerbangan {jadwal_dihapus['kode']} berhasil dihapus!")
