@@ -1,22 +1,27 @@
 import os
 import json
 
+# ambil path folder tempat file Python ini berada (misalnya ADMIN1)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+AKUN_FILE = os.path.join(BASE_DIR, "akun.json")
 
 def load_users():
     try:
-        with open("akun.json", "r") as f:  
+        with open(AKUN_FILE, "r") as f:  
             return json.load(f)
     except FileNotFoundError:
-    
-        return {
-            "user": {"password": "999", "role": "user"},
+        # hanya satu akun admin bawaan
+        default_users = {
             "admin": {"password": "242637", "role": "admin"}
         }
+        # langsung simpan default ke file akun.json
+        with open(AKUN_FILE, "w") as f:
+            json.dump(default_users, f, indent=4)
+        return default_users
 
 def save_users(users):
-    with open("akun.json", "w") as f:      
+    with open(AKUN_FILE, "w") as f:       
         json.dump(users, f, indent=4)
-
 
 users = load_users()
 
@@ -55,7 +60,7 @@ def register():
 
         if username and password:
             users[username] = {"password": password, "role": role}
-            save_users(users) 
+            save_users(users)   
             print(f"Akun '{username}' berhasil didaftarkan!")
             break
         else:
@@ -63,7 +68,7 @@ def register():
             attempt += 1
 
         if attempt == 5:
-            print("\n Batas percobaan register telah habis!")
+            print("\nBatas percobaan register telah habis!")
 
     pause()
 

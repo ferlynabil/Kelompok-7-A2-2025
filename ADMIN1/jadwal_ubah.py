@@ -6,7 +6,7 @@ def ubah_jadwal():
         data_jadwal = json.load(f)
 
     if not data_jadwal:
-        print("❌ Belum ada jadwal penerbangan untuk diubah.")
+        print(" Belum ada jadwal penerbangan untuk diubah.")
         return
 
     pilihan_jadwal = [
@@ -38,4 +38,4 @@ def ubah_jadwal():
     with open("jadwal.json", "w") as f:
         json.dump(data_jadwal, f, indent=4)
 
-    print("\n✅ Jadwal penerbangan berhasil diubah!")
+    print("\n Jadwal penerbangan berhasil diubah!")
