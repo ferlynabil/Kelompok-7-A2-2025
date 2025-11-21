@@ -1,7 +1,6 @@
 import os
 import json
 import inquirer
-
 # ====== LOAD & SAVE USERS ======
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 AKUN_FILE = os.path.join(BASE_DIR, "akun.json")
