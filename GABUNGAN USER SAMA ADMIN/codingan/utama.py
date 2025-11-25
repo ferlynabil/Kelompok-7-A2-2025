@@ -49,55 +49,69 @@ def save_users(users):
         json.dump(users, f, indent=4)
 
 # ====== REGISTER ======
+# ====== REGISTER ======
 def register():
     cls()
     print(Fore.CYAN + "=== REGISTER AKUN BARU ===\n")
     
     users = load_users()
-    attempt = 0
-    max_attempts = 5
 
-    while attempt < max_attempts:
-        try:
-            questions = [
-                inquirer.Text("username", message="Username baru"),
-                inquirer.Password("password", message="Password")
-            ]
-            ans = inquirer.prompt(questions)
+    try:
+        questions = [
+            inquirer.Text("username", message="Username baru"),
+            inquirer.Password("password", message="Password")
+        ]
+        ans = inquirer.prompt(questions)
 
-            if ans is None:  # User cancelled
-                print(Fore.YELLOW + "\nRegistrasi dibatalkan.")
-                break
+        if ans is None:  # User cancelled
+            print(Fore.YELLOW + "\nRegistrasi dibatalkan.")
+            pause()
+            return  # balik ke menu utama
 
-            username = ans["username"].strip()
-            password = ans["password"].strip()
+        username = ans["username"].strip()
+        password = ans["password"].strip()
 
-            # Validasi input kosong
-            if not username or not password:
-                print(Fore.RED + "✖ Username/password tidak boleh kosong!")
-                attempt += 1
-                continue
+        # Validasi username kosong
+        if not username:
+            print(Fore.RED + "✖ Username tidak boleh kosong!")
+            pause()
+            return
 
-            # Cek username sudah ada
-            if username in users:
-                print(Fore.RED + f"✖ Username '{username}' sudah terdaftar!")
-                attempt += 1
-                continue
+        # Validasi username hanya huruf
+        if not username.isalpha():
+            print(Fore.RED + "✖ Username hanya boleh huruf (A-Z)!")
+            pause()
+            return
 
-            # Registrasi berhasil
-            users[username] = {"password": password, "role": "user"}
-            save_users(users)
-            print(Fore.GREEN + f"\n✔ Akun '{username}' berhasil didaftarkan sebagai user!")
-            break
+        # Validasi password kosong
+        if not password:
+            print(Fore.RED + "✖ Password tidak boleh kosong!")
+            pause()
+            return
 
-        except Exception as e:
-            print(Fore.RED + f"Error: {e}")
-            attempt += 1
+        # Validasi password hanya angka positif dan minimal 3 digit
+        if not password.isdigit() or len(password) < 3:
+            print(Fore.RED + "✖ Password harus berupa angka positif dan minimal 3 digit!")
+            pause()
+            return
 
-    if attempt == max_attempts:
-        print(Fore.RED + "\n⚠ Batas percobaan registrasi habis (5x)!")
-    
-    pause()
+        # Cek username sudah ada
+        if username in users:
+            print(Fore.RED + f"✖ Username '{username}' sudah terdaftar!")
+            pause()
+            return
+
+        # Registrasi berhasil
+        users[username] = {"password": password, "role": "user"}
+        save_users(users)
+        print(Fore.GREEN + f"\n✔ Akun '{username}' berhasil didaftarkan sebagai user!")
+        pause()
+        return
+
+    except Exception as e:
+        print(Fore.RED + f"Error: {e}")
+        pause()
+        return
 
 # ====== LOGIN ======
 def login():
@@ -114,6 +128,8 @@ def login():
         ans = inquirer.prompt(questions)
 
         if ans is None:  # User cancelled
+            print(Fore.YELLOW + "\nLogin dibatalkan.")
+            pause()
             return None
 
         username = ans["username"].strip()
@@ -162,6 +178,8 @@ def menu_admin(username):
         jawaban = inquirer.prompt(pertanyaan_menu)
         
         if jawaban is None:  # User cancelled
+            print(Fore.YELLOW + "\nKembali ke menu utama.")
+            pause()
             break
 
         pilihan = jawaban['pilihan']
@@ -227,6 +245,8 @@ def menu_user(username):
         jawaban = inquirer.prompt(pertanyaan_menu)
         
         if jawaban is None:  # User cancelled
+            print(Fore.YELLOW + "\nKembali ke menu utama.")
+            pause()
             break
 
         pilihan = jawaban['pilihan']
@@ -280,6 +300,7 @@ def main():
         
         if jawaban is None:  # User cancelled
             print(Fore.YELLOW + "\nProgram dihentikan.")
+            pause()
             break
 
         pilihan = jawaban['pilihan']
@@ -299,6 +320,7 @@ def main():
             cls()
             print(Fore.GREEN + "Terima kasih telah menggunakan sistem pemesanan tiket!")
             print(Fore.YELLOW + "Program selesai.\n")
+            pause()
             break
 
 if __name__ == "__main__":

@@ -10,5 +10,13 @@
     "agus": {
         "password": "1234",
         "role": "user"
+    },
+    "rafi": {
+        "password": "123",
+        "role": "user"
+    },
+    "Nuron": {
+        "password": "037",
+        "role": "user"
     }
 }
