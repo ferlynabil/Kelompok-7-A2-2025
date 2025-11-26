@@ -16,6 +16,7 @@ from user_menu import (
     bayar_tiket,
     lihat_tiket_user
 )
+from pembayaran import proses_pembayaran
 
 # Inisialisasi colorama
 init(autoreset=True)
@@ -263,9 +264,9 @@ def menu_user(username):
             cls()
             timbang_bagasi()
             pause()
-        elif pilihan == '4. Melakukan Pembayaran':
+        elif pilihan == "4. Melakukan Pembayaran":
             cls()
-            bayar_tiket()
+            proses_pembayaran()
             pause()
         elif pilihan == '5. Melihat Tiket yang Sudah Dibeli':
             cls()
@@ -281,7 +282,7 @@ def main():
     while True:
         cls()
         print(Fore.CYAN + "╔═══════════════════════════════════════╗")
-        print(Fore.CYAN + "║  SISTEM PEMESANAN TIKET PESAWAT      ║")
+        print(Fore.CYAN + "║  SISTEM PEMESANAN TIKET PESAWAT       ║")
         print(Fore.CYAN + "╚═══════════════════════════════════════╝\n")
 
         menu_utama = [

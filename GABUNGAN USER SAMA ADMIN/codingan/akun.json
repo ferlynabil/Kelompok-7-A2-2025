@@ -18,5 +18,9 @@
     "Nuron": {
         "password": "037",
         "role": "user"
+    },
+    "ewok": {
+        "password": "123456",
+        "role": "user"
     }
 }
