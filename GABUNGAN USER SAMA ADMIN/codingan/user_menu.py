@@ -1,237 +1,302 @@
-import json
 import os
-from datetime import datetime
+import json
+import random
 from prettytable import PrettyTable
-from colorama import init, Fore
 import inquirer
 
-init(autoreset=True)
 
-# ---------------------------
-# Helper
-# ---------------------------
-def cls():
-    os.system('cls' if os.name == 'nt' else 'clear')
-
-
-def load_json(file):
-    if not os.path.exists(file):
-        with open(file, "w") as f:
+# ------------------------------------------------------
+# LOAD & SAVE JSON
+# ------------------------------------------------------
+def load_json(path):
+    if not os.path.exists(path):
+        with open(path, "w") as f:
             json.dump([], f)
-    with open(file, "r") as f:
+    with open(path, "r") as f:
         return json.load(f)
 
 
-def save_json(file, data):
-    with open(file, "w") as f:
+def save_json(path, data):
+    with open(path, "w") as f:
         json.dump(data, f, indent=4)
 
 
-# ---------------------------
-# 1. Lihat Jadwal
-# ---------------------------
+# ------------------------------------------------------
+# LIHAT JADWAL (UNTUK USER)
+# ------------------------------------------------------
 def lihat_jadwal():
-    cls()
-    try:
-        with open("jadwal.json", "r") as f:
-            data_jadwal = json.load(f)
-    except:
-        print(Fore.RED + "❌ File jadwal.json tidak ditemukan.")
-        return
+    os.system("cls")
 
-    if not data_jadwal:
-        print(Fore.YELLOW + "❌ Belum ada jadwal penerbangan.")
-        return
-
-    table = PrettyTable()
-    table.field_names = ["Kode", "Asal", "Tujuan", "Tanggal", "Jam", "Harga"]
-
-    for j in data_jadwal:
-        table.add_row([j['kode'], j['asal'], j['tujuan'], j['tanggal'], j['jam'], j['harga']])
-
-    print(Fore.CYAN + "\n📋 DAFTAR JADWAL PENERBANGAN:")
-    print(table)
-
-
-# ---------------------------
-# 2. Pesan Tiket (Pakai Inquirer)
-# ---------------------------
-def pesan_tiket(username=None):
-    cls()
-
-    # load jadwal
-    try:
-        with open("jadwal.json", "r") as f:
-            jadwal = json.load(f)
-    except:
-        print(Fore.RED + "❌ File jadwal.json tidak ditemukan.")
-        return
-
-    if not jadwal:
-        print(Fore.YELLOW + "❌ Belum ada jadwal.")
-        return
-
-    # tampilkan tabel jadwal
-    table = PrettyTable()
-    table.field_names = ["Kode", "Asal", "Tujuan", "Tanggal", "Jam", "Harga"]
-    for j in jadwal:
-        table.add_row([j["kode"], j["asal"], j["tujuan"], j["tanggal"], j["jam"], j["harga"]])
-
-    print(Fore.CYAN + "\n📋 DAFTAR JADWAL PENERBANGAN:")
-    print(table)
-
-    # buat pilihan inquirer
-    pilihan = []
-    for j in jadwal:
-        pilihan.append(
-            f"{j['kode']} - {j['asal']} → {j['tujuan']} | {j['tanggal']} {j['jam']} | Rp{j['harga']}"
-        )
-
-    # pilih penerbangan
-    jawab = inquirer.prompt([
-        inquirer.List(
-            "pilih",
-            message="✈ Pilih jadwal penerbangan:",
-            choices=pilihan
-        )
-    ])
-
-    if not jawab:
-        print(Fore.YELLOW + "❌ Pemesanan dibatalkan.")
-        return
-
-    teks = jawab["pilih"]
-    kode = teks.split(" - ")[0]
-
-    # ambil jadwal berdasarkan kode
-    data = next((x for x in jadwal if x["kode"] == kode), None)
+    data = load_json("jadwal.json")
 
     if not data:
-        print(Fore.RED + "❌ Jadwal tidak ditemukan.")
+        print("❌ Belum ada jadwal.")
         return
-
-    # minta nama
-    nama = input("Masukkan nama penumpang: ").strip()
-    while not nama:
-        nama = input("Nama tidak boleh kosong, masukkan lagi: ").strip()
-
-    # simpan tiket ke keranjang
-    keranjang = load_json("keranjang.json")
-    waktu_now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-    keranjang.append({
-        "nama": nama,
-        "jadwal": data,
-        "waktu_pesan": waktu_now
-    })
-
-    save_json("keranjang.json", keranjang)
-
-    print(Fore.GREEN + "\n✔ Tiket berhasil dimasukkan ke keranjang!")
-    print(Fore.YELLOW + f"Waktu pesan: {waktu_now}")
-
-
-# ---------------------------
-# 3. Timbang Bagasi
-# ---------------------------
-def timbang_bagasi():
-    cls()
-    print(Fore.CYAN + "\n=== TIMBANG BAGASI ===")
-
-    while True:
-        try:
-            berat = float(input("Masukkan berat bagasi (kg): ").strip())
-            if berat < 0:
-                print(Fore.RED + "❌ Tidak boleh minus! Masukkan ulang.\n")
-                continue
-            break
-        except:
-            print(Fore.RED + "❌ Input harus angka! Coba lagi.\n")
-
-    if berat <= 20:
-        print(Fore.GREEN + "✔ Bagasi gratis (≤20 kg).")
-    else:
-        kelebihan = berat - 20
-        biaya = kelebihan * 50000
-        print(Fore.YELLOW + f"Kelebihan {kelebihan:.1f} kg → Biaya Rp{int(biaya):,}")
-
-
-# ---------------------------
-# 4. Bayar Tiket
-# ---------------------------
-def bayar_tiket():
-    cls()
-    keranjang = load_json("keranjang.json")
-    tiket_user = load_json("data_tiket_user.json")
-
-    if not keranjang:
-        print(Fore.YELLOW + "❌ Keranjang kosong!")
-        return
-
-    print(Fore.CYAN + "\n=== PEMBAYARAN ===")
 
     table = PrettyTable()
-    table.field_names = ["No", "Nama", "Kode", "Asal", "Tujuan", "Harga", "Pesan"]
+    table.field_names = ["Kode", "Asal", "Tujuan", "Tanggal", "Jam", "Harga"]
 
-    total = 0
-    for i, t in enumerate(keranjang, start=1):
-        j = t["jadwal"]
-        total += j["harga"]
-        table.add_row([i, t["nama"], j["kode"], j["asal"], j["tujuan"], j["harga"], t["waktu_pesan"]])
+    for j in data:
+        table.add_row([
+            j["kode"], j["asal"], j["tujuan"], j["tanggal"], j["jam"], j["harga"]
+        ])
+
+    print("\n📋 DAFTAR JADWAL PENERBANGAN:\n")
+    print(table)
+
+
+# ------------------------------------------------------
+# PESAN TIKET
+# ------------------------------------------------------
+
+def pesan_tiket(username):
+    os.system("cls")
+
+    jadwal = load_json("jadwal.json")
+    if not jadwal:
+        print("❌ Jadwal kosong.")
+        return
+
+    print("=== PILIH JADWAL ===\n")
+
+    table = PrettyTable()
+    table.field_names = ["ID", "Kode", "Asal", "Tujuan", "Tanggal", "Jam", "Harga"]
+
+    pilihan_list = []
+    for i, j in enumerate(jadwal):
+        table.add_row([i+1, j["kode"], j["asal"], j["tujuan"], j["tanggal"], j["jam"], j["harga"]])
+        pilihan_list.append(f"{i+1}. {j['asal']} → {j['tujuan']} ({j['tanggal']} {j['jam']}) - Rp {j['harga']}")
 
     print(table)
-    print(Fore.MAGENTA + f"Total pembayaran: Rp{int(total):,}")
 
-    konfirm = input("Lanjutkan pembayaran? (y/n): ").lower()
-    while konfirm not in ("y", "n"):
-        konfirm = input("Input salah. Pilih y/n: ").lower()
+    pertanyaan = [
+        inquirer.List(
+            "pilih",
+            message="Pilih jadwal:",
+            choices=pilihan_list
+        )
+    ]
+    jawaban = inquirer.prompt(pertanyaan)
 
-    if konfirm == "n":
-        print(Fore.YELLOW + "❌ Pembayaran dibatalkan.")
+    if jawaban is None:
+        print("❌ Pemesanan dibatalkan.")
         return
 
-    waktu_bayar = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    index = int(jawaban["pilih"].split(".")[0]) - 1
+    data = jadwal[index]
 
-    for t in keranjang:
-        t["waktu_bayar"] = waktu_bayar
-        tiket_user.append(t)
+    tiket = load_json("tiket.json")
 
-    keranjang.clear()
-    save_json("data_tiket_user.json", tiket_user)
-    save_json("keranjang.json", keranjang)
+    tiket.append({
+        "user": username,
+        "kode": data["kode"],
+        "asal": data["asal"],
+        "tujuan": data["tujuan"],
+        "tanggal": data["tanggal"],
+        "jam": data["jam"],
+        "harga": data["harga"],
+        "status": "belum"
+    })
 
-    print(Fore.GREEN + "✔ Pembayaran berhasil!")
-    print(Fore.YELLOW + f"Waktu bayar: {waktu_bayar}")
+    save_json("tiket.json", tiket)
 
+    print("\n✅ Tiket berhasil dipesan!")
+    print("Status: BELUM DIBAYAR\n")
 
-# ---------------------------
-# 5. Lihat Tiket User
-# ---------------------------
-def lihat_tiket_user():
-    cls()
-    tiket = load_json("data_tiket_user.json")
+# ------------------------------------------------------
+# TIKET SAYA
+# ------------------------------------------------------
+def lihat_tiket_user(username):
+    os.system("cls")
 
-    print(Fore.CYAN + "\n=== TIKET YANG SUDAH DIBELI ===")
+    tiket = load_json("tiket.json")
+    data = [t for t in tiket if t["user"] == username]
 
-    if not tiket:
-        print(Fore.YELLOW + "Belum ada tiket.")
+    if not data:
+        print("⚠ Belum ada tiket.")
         return
+
+    print("=== TIKET KAMU ===\n")
 
     table = PrettyTable()
-    table.field_names = ["No", "Nama", "Kode", "Asal", "Tujuan",
-                         "Harga", "Pesan", "Bayar"]
+    table.field_names = ["Kode", "Asal", "Tujuan", "Tanggal", "Jam", "Harga", "Status"]
 
-    for i, t in enumerate(tiket, start=1):
-        j = t["jadwal"]
+    for t in data:
         table.add_row([
-            i,
-            t["nama"],
-            j["kode"],
-            j["asal"],
-            j["tujuan"],
-            j["harga"],
-            t["waktu_pesan"],
-            t.get("waktu_bayar", "-")
+            t["kode"], t["asal"], t["tujuan"], t["tanggal"], t["jam"],
+            f"Rp {t['harga']:,}", t["status"].upper()
         ])
 
     print(table)
+
+
+
+# ------------------------------------------------------
+# TIMBANG BAGASI
+# ------------------------------------------------------
+def timbang_bagasi(username):
+    os.system("cls")
+    print("=== MENIMBANG BAGASI ===\n")
+
+    while True:
+        pertanyaan = [
+            inquirer.Text("berat", message="Masukkan berat bagasi (kg)")
+        ]
+        jawab = inquirer.prompt(pertanyaan)
+
+        if jawab is None:
+            print("❌ Dibatalkan.")
+            return
+
+        try:
+            berat = float(jawab["berat"])
+        except ValueError:
+            print("❌ Input harus angka!")
+            continue  # ulang khusus input berat
+
+        if berat < 0:
+            print("❌ Berat tidak boleh minus!")
+            continue
+
+        break  # Keluar loop kalau valid
+
+    # --- Perhitungan ---
+    if berat <= 15:
+        print(f"\n✔ Berat: {berat} kg — GRATIS!")
+    else:
+        kelebihan = berat - 15
+        denda = kelebihan * 20000
+        print(f"\n⚠ Berat: {berat} kg — Kelebihan {kelebihan} kg")
+        print(f"Denda: Rp {denda:,}")
+
+    input("\nEnter untuk kembali...")
+
+# ------------------------------------------------------
+# PEMBAYARAN
+# ------------------------------------------------------
+def bayar_tiket(username):
+    os.system("cls")
+
+    tiket = load_json("tiket.json")
+    tiket_user = [t for t in tiket if t["user"] == username and t["status"] == "belum"]
+
+    if not tiket_user:
+        print("⚠ Tidak ada tiket yang perlu dibayar.")
+        return
+
+    pilihan = []
+    for i, t in enumerate(tiket_user):
+        pilihan.append(f"{i+1}. {t['asal']} → {t['tujuan']} ({t['tanggal']} {t['jam']}) - Rp {t['harga']}")
+
+    pertanyaan = [
+        inquirer.List("pilih", message="Pilih tiket :", choices=pilihan)
+    ]
+    jawaban = inquirer.prompt(pertanyaan)
+
+    if jawaban is None:
+        print("❌ Dibatalkan.")
+        return
+
+    idx = int(jawaban["pilih"].split(".")[0]) - 1
+    t = tiket_user[idx]
+    harga = t["harga"]
+
+    # PILIH METODE
+    metode_pembayaran = [
+        "Virtual Account",
+        "QRIS",
+        "Minimarket"
+    ]
+
+    pilih_metode = [
+        inquirer.List("metode", message="Pilih metode pembayaran:", choices=metode_pembayaran)
+    ]
+    metode = inquirer.prompt(pilih_metode)["metode"]
+
+    os.system("cls")
+
+    if metode == "Virtual Account":
+        bank = ["BCA", "MANDIRI", "BRI"]
+
+        pilih_bank = [
+            inquirer.List("bank", message="Pilih bank:", choices=bank)
+        ]
+        b = inquirer.prompt(pilih_bank)["bank"]
+
+        kode = {"BCA":"014","MANDIRI":"008","BRI":"002"}
+        nomor_va = kode[b] + str(random.randint(1000000000, 9999999999))
+
+        print(f"Bank: {b}")
+        print(f"VA Number: {nomor_va}")
+        print(f"Total: Rp {harga:,}")
+
+    elif metode == "QRIS":
+        qris = "000201" + str(random.randint(10000000,99999999))
+        print(f"QRIS Code: {qris}")
+        print(f"Total: Rp {harga:,}")
+
+    elif metode == "Minimarket":
+        kode_bayar = str(random.randint(100000000000, 999999999999))
+        toko = random.choice(["Indomaret", "Alfamart"])
+
+        print(f"Bayar di: {toko}")
+        print(f"Kode Bayar: {kode_bayar}")
+        print(f"Total: Rp {harga:,}")
+
+    # KONFIRMASI PEMBAYARAN
+    konfirmasi = [
+        inquirer.Confirm("ok", message="Sudah melakukan pembayaran?", default=False)
+    ]
+    yes = inquirer.prompt(konfirmasi)
+
+    if not yes["ok"]:
+        print("❌ Pembayaran dibatalkan.")
+        return
+
+    # Ubah status jadi lunas
+    for item in tiket:
+        if item == t:
+            item["status"] = "lunas"
+
+    save_json("tiket.json", tiket)
+
+    print("\n✅ PEMBAYARAN BERHASIL!")
+
+
+
+# ------------------------------------------------------
+# MENU USER
+# ------------------------------------------------------
+def menu_user(username):
+    while True:
+        os.system("cls")
+        print(f"=== MENU USER ({username}) ===")
+        print("1. Lihat Jadwal")
+        print("2. Pesan Tiket")
+        print("3. Timbang Bagasi")
+        print("4. Pembayaran")
+        print("5. Tiket Saya")
+        print("6. Logout")
+
+        pilih = input("\nPilih: ")
+
+        if pilih == "1":
+            lihat_jadwal()
+            input("\nEnter...")
+        elif pilih == "2":
+            pesan_tiket(username)
+            input("\nEnter...")
+        elif pilih == "3":
+            timbang_bagasi()
+            input("\nEnter...")
+        elif pilih == "4":
+            bayar_tiket(username)
+            input("\nEnter...")
+        elif pilih == "5":
+            lihat_tiket_user(username)
+            input("\nEnter...")
+        elif pilih == "6":
+            break
+        else:
+            print("❌ Pilihan tidak ada!")
+            input("Enter...")
