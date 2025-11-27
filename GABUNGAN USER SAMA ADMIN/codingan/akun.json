@@ -22,5 +22,21 @@
     "ewok": {
         "password": "123456",
         "role": "user"
+    },
+    "adi": {
+        "password": "123456",
+        "role": "user"
+    },
+    "12": {
+        "password": "-1",
+        "role": "user"
+    },
+    "adil": {
+        "password": "09876",
+        "role": "user"
+    },
+    "poy": {
+        "password": "12345677890",
+        "role": "user"
     }
 }

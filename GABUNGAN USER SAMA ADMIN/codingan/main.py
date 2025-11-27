@@ -19,11 +19,10 @@ from user_menu import (
 )
 from konfirmasi_pesanan import konfirmasi_pesanan
 
-# Inisialisasi colorama
-init(autoreset=True)
+# ⬇ Pakai sistem login dari file login.py
+from login import login, register
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-AKUN_FILE = os.path.join(BASE_DIR, "akun.json")
+init(autoreset=True)
 
 def cls():
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -31,76 +30,6 @@ def cls():
 def pause():
     input("\nTekan Enter untuk melanjutkan...")
 
-# ====== LOAD & SAVE USERS ======
-def load_users():
-    try:
-        with open(AKUN_FILE, "r") as f:
-            return json.load(f)
-    except FileNotFoundError:
-        default = {
-            "admin": {"password": "242637", "role": "admin"}
-        }
-        with open(AKUN_FILE, "w") as f:
-            json.dump(default, f, indent=4)
-        return default
-
-def save_users(users):
-    with open(AKUN_FILE, "w") as f:
-        json.dump(users, f, indent=4)
-
-# ====== REGISTER ======
-def register():
-    cls()
-    print(Fore.CYAN + "=== REGISTER AKUN BARU ===\n")
-    users = load_users()
-    questions = [
-        inquirer.Text("username", message="Username baru"),
-        inquirer.Password("password", message="Password")
-    ]
-    ans = inquirer.prompt(questions)
-    if ans is None:
-        print(Fore.YELLOW + "\nRegistrasi dibatalkan.")
-        pause()
-        return
-    username = ans["username"].strip()
-    password = ans["password"].strip()
-    if not username or not username.isalpha():
-        print(Fore.RED + "✖ Username hanya boleh huruf dan tidak boleh kosong!")
-        pause(); return
-    if not password or not password.isdigit() or len(password) < 3:
-        print(Fore.RED + "✖ Password harus berupa angka positif dan minimal 3 digit!")
-        pause(); return
-    if username in users:
-        print(Fore.RED + f"✖ Username '{username}' sudah terdaftar!")
-        pause(); return
-    users[username] = {"password": password, "role": "user"}
-    save_users(users)
-    print(Fore.GREEN + f"\n✔ Akun '{username}' berhasil didaftarkan sebagai user!")
-    pause()
-
-# ====== LOGIN ======
-def login():
-    cls()
-    print(Fore.CYAN + "=== LOGIN ===\n")
-    users = load_users()
-    questions = [
-        inquirer.Text("username", message="Masukkan username"),
-        inquirer.Password("password", message="Masukkan password")
-    ]
-    ans = inquirer.prompt(questions)
-    if ans is None:
-        print(Fore.YELLOW + "\nLogin dibatalkan.")
-        pause(); return None
-    username = ans["username"].strip()
-    password = ans["password"].strip()
-    if username in users and users[username]["password"] == password:
-        role = users[username]["role"]
-        print(Fore.GREEN + f"\n✔ Login berhasil! Selamat datang, {username} ({role})")
-        pause()
-        return {"username": username, "role": role}
-    else:
-        print(Fore.RED + "\n✖ Username atau password salah!")
-        pause(); return None
 
 # ====== LIHAT PESANAN USER ======
 def lihat_pesanan_user():
@@ -138,20 +67,19 @@ def lihat_pesanan_user():
 
     print(table)
 
-    
-#=======TOTAL PENDAPATAN====
+
+# ====== TOTAL PENDAPATAN ======
 def total_pendapatan():
     try:
         with open("tiket.json", "r") as f:
             tiket = json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError):
+    except:
         tiket = []
 
     if not tiket:
         print(Fore.YELLOW + "⚠ Belum ada tiket.")
         return
 
-    # Hitung total hanya tiket yang statusnya lunas
     total = sum(t.get("harga", 0) for t in tiket if str(t.get("status","")).lower() == "lunas")
 
     print(Fore.CYAN + "=== TOTAL PENDAPATAN ===\n")
@@ -163,7 +91,8 @@ def menu_admin(username):
     while True:
         cls()
         print(Fore.CYAN + f"=== MENU ADMIN ({username}) ===\n")
-        pertanyaan_menu = [
+
+        menu = [
             inquirer.List(
                 'pilihan',
                 message="Pilih menu:",
@@ -180,34 +109,39 @@ def menu_admin(username):
                 ]
             )
         ]
-        jawaban = inquirer.prompt(pertanyaan_menu)
-        if jawaban is None: break
-        pilihan = jawaban['pilihan']
-        if pilihan == '1. Tambah Jadwal Penerbangan':
+
+        jawab = inquirer.prompt(menu)
+        if jawab is None: break
+
+        pilih = jawab["pilihan"]
+
+        if pilih == '1. Tambah Jadwal Penerbangan':
             cls(); tambah_jadwal(); pause()
-        elif pilihan == '2. Ubah Jadwal Penerbangan':
+        elif pilih == '2. Ubah Jadwal Penerbangan':
             cls(); ubah_jadwal(); pause()
-        elif pilihan == '3. Hapus Jadwal Penerbangan':
+        elif pilih == '3. Hapus Jadwal Penerbangan':
             cls(); hapus_jadwal(); pause()
-        elif pilihan == '4. Lihat Jadwal Penerbangan':
+        elif pilih == '4. Lihat Jadwal Penerbangan':
             cls(); lihat_jadwal(); pause()
-        elif pilihan == '5. Lihat Daftar Akun User':
+        elif pilih == '5. Lihat Daftar Akun User':
             cls(); lihat_akun(); pause()
-        elif pilihan == '6. Lihat Daftar Pesanan User':
+        elif pilih == '6. Lihat Daftar Pesanan User':
             cls(); lihat_pesanan_user(); pause()
-        elif pilihan == '7. Konfirmasi Pesanan User':
+        elif pilih == '7. Konfirmasi Pesanan User':
             cls(); konfirmasi_pesanan(); pause()
-        elif pilihan == '8. Total Pendapatan':
+        elif pilih == '8. Total Pendapatan':
             cls(); total_pendapatan(); pause()
-        elif pilihan == '9. Logout':
+        elif pilih == '9. Logout':
             print(Fore.GREEN + "\n✔ Logout berhasil."); pause(); break
+
 
 # ====== MENU USER ======
 def menu_user(username):
     while True:
         cls()
         print(Fore.CYAN + f"=== MENU USER ({username}) ===\n")
-        pertanyaan_menu = [
+
+        menu = [
             inquirer.List(
                 'pilihan',
                 message="Pilih menu:",
@@ -221,56 +155,64 @@ def menu_user(username):
                 ]
             )
         ]
-        jawaban = inquirer.prompt(pertanyaan_menu)
-        if jawaban is None: break
-        pilihan = jawaban['pilihan']
-        if pilihan == '1. Lihat Jadwal Penerbangan':
+
+        jawab = inquirer.prompt(menu)
+        if jawab is None: break
+
+        pilih = jawab["pilihan"]
+
+        if pilih == '1. Lihat Jadwal Penerbangan':
             cls(); user_lihat_jadwal(); pause()
-        elif pilihan == '2. Pesan Tiket':
+        elif pilih == '2. Pesan Tiket':
             cls(); pesan_tiket(username); pause()
-        elif pilihan == '3. Menimbang Berat Bagasi':
+        elif pilih == '3. Menimbang Berat Bagasi':
             cls(); timbang_bagasi(username); pause()
-        elif pilihan == "4. Melakukan Pembayaran":
+        elif pilih == '4. Melakukan Pembayaran':
             cls(); bayar_tiket(username); pause()
-        elif pilihan == '5. Melihat Tiket yang Sudah Dibeli':
+        elif pilih == '5. Melihat Tiket yang Sudah Dibeli':
             cls(); lihat_tiket_user(username); pause()
-        elif pilihan == '6. Logout':
+        elif pilih == '6. Logout':
             print(Fore.GREEN + "\n✔ Logout berhasil."); pause(); break
 
-# ====== MAIN MENU ======
+
+# ====== MAIN ======
 def main():
     while True:
         cls()
         print(Fore.CYAN + "╔═══════════════════════════════════════╗")
         print(Fore.CYAN + "║  SISTEM PEMESANAN TIKET FAFAFUFU AIR  ║")
         print(Fore.CYAN + "╚═══════════════════════════════════════╝\n")
-        menu_utama = [
+
+        menu = [
             inquirer.List(
                 'pilihan',
                 message="Pilih menu:",
-                choices=['1. Login','2. Register','3. Keluar']
+                choices=['1. Login', '2. Register', '3. Keluar']
             )
         ]
-        jawaban = inquirer.prompt(menu_utama)
-        if jawaban is None: break
-        pilihan = jawaban['pilihan']
-        if pilihan == '1. Login':
+
+        jawab = inquirer.prompt(menu)
+        if jawab is None: break
+
+        pilih = jawab["pilihan"]
+
+        if pilih == '1. Login':
             user_data = login()
             if user_data:
                 if user_data["role"] == "admin":
                     menu_admin(user_data["username"])
-                elif user_data["role"] == "user":
+                else:
                     menu_user(user_data["username"])
 
-        elif pilihan == '2. Register':
+        elif pilih == '2. Register':
             register()
 
-        elif pilihan == '3. Keluar':
+        elif pilih == '3. Keluar':
             cls()
-            print(Fore.GREEN + "Terima kasih telah menggunakan sistem pemesanan tiket!")
-            print(Fore.YELLOW + "Program selesai.\n")
+            print(Fore.GREEN + "Terima kasih telah menggunakan sistem!")
             pause()
             break
+
 
 if __name__ == "__main__":
     main()

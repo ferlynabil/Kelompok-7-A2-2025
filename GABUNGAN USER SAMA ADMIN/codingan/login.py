@@ -1,6 +1,9 @@
 import os
 import json
 import inquirer
+from colorama import init, Fore
+
+
 # ====== LOAD & SAVE USERS ======
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 AKUN_FILE = os.path.join(BASE_DIR, "akun.json")
@@ -26,70 +29,101 @@ users = load_users()
 # ====== UTIL ======
 def clean():
     os.system('cls' if os.name == 'nt' else 'clear')
+def cls():
+    os.system('cls')
 
 def pause():
     input("\nTekan Enter...")
 
-# ====== LOGIN ======
-def login():
-    clean()
-    print("=== LOGIN ===\n")
-
-    questions = [
-        inquirer.Text("username", message="Masukkan username"),
-        inquirer.Password("password", message="Masukkan password")
-    ]
-
-    ans = inquirer.prompt(questions)
-    u = ans["username"]
-    p = ans["password"]
-
-    if u in users and users[u]["password"] == p:
-        print(f"\n✔ Login berhasil! Selamat datang, {u} ({users[u]['role']})")
-        pause()
-        if users[u]["role"] == "admin":
-            admin_menu(u)
-        else:
-            user_menu(u)
-    else:
-        print("\n✖ Username atau password salah!")
-        pause()
-
-# ====== REGISTER ======
+# ====================================
+# REGISTER (ulang sampai berhasil)
+# ====================================
 def register():
-    clean()
-    print("=== REGISTER (5 percobaan) ===\n")
+    while True:   # <-- LOOP REGISTER
+        cls()
+        print(Fore.CYAN + "=== REGISTER AKUN BARU ===\n")
 
-    attempt = 0
+        users = load_users()
 
-    while attempt < 5:
         questions = [
             inquirer.Text("username", message="Username baru"),
             inquirer.Password("password", message="Password")
         ]
         ans = inquirer.prompt(questions)
 
-        u = ans["username"]
-        p = ans["password"]
+        if ans is None:
+            print(Fore.YELLOW + "Registrasi dibatalkan.")
+            pause()
+            return
 
-        if u in users:
-            print("✖ Username sudah ada!")
-            attempt += 1
+        username = ans["username"].strip()
+        password = ans["password"].strip()
+
+        # VALIDASI
+        if not username or not username.isalpha():
+            print(Fore.RED + "✖ Username hanya boleh huruf dan tidak boleh kosong!")
+            pause()
             continue
 
-        if not u or not p:
-            print("✖ Username/password tidak boleh kosong!")
-            attempt += 1
+        if not password.isdigit() or len(password) < 3:
+            print(Fore.RED + "✖ Password harus berupa angka positif minimal 3 digit!")
+            pause()
             continue
 
-        users[u] = {"password": p, "role": "user"}
+        if username in users:
+            print(Fore.RED + f"✖ Username '{username}' sudah digunakan!")
+            pause()
+            continue
+
+        # SIMPAN
+        users[username] = {"password": password, "role": "user"}
         save_users(users)
-        print(f"\n✔ Akun '{u}' berhasil didaftarkan!")
-        break
 
-    if attempt == 5:
-        print("\n⚠ Batas percobaan habis!")
-    pause()
+        print(Fore.GREEN + f"✔ Akun '{username}' berhasil dibuat!")
+        pause()
+        return  # keluar setelah berhasil
+
+
+# ====================================
+# LOGIN (ulang sampai benar)
+# ====================================
+def login():
+    users = load_users()
+
+    while True:   # <-- LOOP LOGIN
+        cls()
+        print(Fore.CYAN + "=== LOGIN ===\n")
+
+        questions = [
+            inquirer.Text("username", message="Masukkan username"),
+            inquirer.Password("password", message="Masukkan password")
+        ]
+        ans = inquirer.prompt(questions)
+
+        if ans is None:
+            print(Fore.YELLOW + "Login dibatalkan.")
+            pause()
+            return None
+
+        username = ans["username"].strip()
+        password = ans["password"].strip()
+
+        # CEK USER
+        if username not in users:
+            print(Fore.RED + "✖ Username tidak ditemukan!")
+            pause()
+            continue
+
+        # CEK PASSWORD
+        if users[username]["password"] != password:
+            print(Fore.RED + "✖ Password salah!")
+            pause()
+            continue
+
+        role = users[username]["role"]
+        print(Fore.GREEN + f"✔ Login berhasil! Selamat datang, {username} ({role})")
+        pause()
+        return {"username": username, "role": role}
 
 # ====== MENU ADMIN ======
 def admin_menu(username):
