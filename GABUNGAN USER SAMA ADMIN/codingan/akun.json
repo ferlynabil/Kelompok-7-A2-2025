@@ -3,48 +3,9 @@
         "password": "242637",
         "role": "admin"
     },
-    "agys": {
-        "password": "1234",
-        "role": "user"
-    },
-    "agus": {
-        "password": "1234",
-        "role": "user"
-    },
-    "rafi": {
-        "password": "123",
-        "role": "user"
-    },
+    
     "Nuron": {
         "password": "037",
-        "role": "user"
-    },
-    "ewok": {
-        "password": "123456",
-        "role": "user"
-    },
-    "adi": {
-        "password": "123456",
-        "role": "user"
-    },
-    "12": {
-        "password": "-1",
-        "role": "user"
-    },
-    "adil": {
-        "password": "09876",
-        "role": "user"
-    },
-    "poy": {
-        "password": "12345677890",
-        "role": "user"
-    },
-    "toYy": {
-        "password": "1234",
-        "role": "user"
-    },
-    "req": {
-        "password": "4321",
         "role": "user"
     }
 }
