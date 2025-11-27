@@ -97,6 +97,9 @@ def ubah_jadwal():
 
     print(f"\n📌 Jadwal lama: {jadwal_ditemukan}")
 
+    # fallback nama maskapai/pesawat
+    lama_maskapai = jadwal_ditemukan.get("nama_maskapai") or jadwal_ditemukan.get("nama_pesawat","-")
+
     # Prompt perubahan
     perubahan = inquirer.prompt([
         inquirer.Text('asal', message=f"Ubah Kota Asal (lama: {jadwal_ditemukan['asal']})"),
@@ -104,8 +107,8 @@ def ubah_jadwal():
         inquirer.Text('tanggal', message=f"Ubah Tanggal (lama: {jadwal_ditemukan['tanggal']})"),
         inquirer.Text('jam', message=f"Ubah Jam (lama: {jadwal_ditemukan['jam']})"),
         inquirer.Text('harga', message=f"Ubah Harga Tiket (lama: {jadwal_ditemukan['harga']})"),
-        inquirer.Text('nama_pesawat', message=f"Ubah Nama Pesawat (lama: {jadwal_ditemukan['nama_pesawat']})"),
-        inquirer.List('jenis_pesawat', message=f"Ubah Jenis Pesawat (lama: {jadwal_ditemukan['jenis_pesawat']})", choices=['Ekonomi','Bisnis']),
+        inquirer.Text('nama_maskapai', message=f"Ubah Nama Maskapai (lama: {lama_maskapai})"),
+        inquirer.List('jenis_pesawat', message=f"Ubah Jenis Pesawat (lama: {jadwal_ditemukan.get('jenis_pesawat','-')})", choices=['Ekonomi','Bisnis']),
         inquirer.Text('kapasitas', message=f"Ubah Kapasitas Kursi (lama: {jadwal_ditemukan.get('kapasitas','-')})"),
         inquirer.Text('kolom', message=f"Ubah Jumlah Kursi per Baris (lama: {jadwal_ditemukan.get('kolom','-')})")
     ])
@@ -132,9 +135,9 @@ def ubah_jadwal():
         if harga_int is None: return
         jadwal_ditemukan['harga'] = harga_int
 
-    if perubahan['nama_pesawat'].strip():
-        if not validasi_huruf(perubahan['nama_pesawat'], "Nama pesawat"): return
-        jadwal_ditemukan['nama_pesawat'] = perubahan['nama_pesawat'].strip()
+    if perubahan['nama_maskapai'].strip():
+        if not validasi_huruf(perubahan['nama_maskapai'], "Nama maskapai"): return
+        jadwal_ditemukan['nama_maskapai'] = perubahan['nama_maskapai'].strip()
 
     if perubahan['jenis_pesawat']:
         jadwal_ditemukan['jenis_pesawat'] = perubahan['jenis_pesawat']
@@ -154,7 +157,7 @@ def ubah_jadwal():
         kursi_list = []
         for i in range(jadwal_ditemukan['kapasitas']):
             kursi_id = f"{(i//jadwal_ditemukan['kolom'])+1}{chr(65+(i%jadwal_ditemukan['kolom']))}"
-            kursi_list.append(kursi_id)
+            kursi_list.append({"nomor": kursi_id, "status": "kosong"})
         jadwal_ditemukan['kursi'] = kursi_list
 
     # Simpan kembali dengan error handling
@@ -171,6 +174,9 @@ def ubah_jadwal():
     print(f"Asal: {jadwal_ditemukan['asal']} → Tujuan: {jadwal_ditemukan['tujuan']}")
     print(f"Tanggal: {jadwal_ditemukan['tanggal']} | Jam: {jadwal_ditemukan['jam']}")
     print(f"Harga: {harga_rupiah}")
-    print(f"Pesawat: {jadwal_ditemukan['nama_pesawat']} ({jadwal_ditemukan['jenis_pesawat']})")
+    print(f"Maskapai: {jadwal_ditemukan['nama_maskapai']} ({jadwal_ditemukan['jenis_pesawat']})")
     print(f"Kapasitas Kursi: {jadwal_ditemukan.get('kapasitas','-')} (per baris {jadwal_ditemukan.get('kolom','-')})")
-    print(f"Kursi tersedia: {', '.join(jadwal_ditemukan.get('kursi',[]))}")
+    print("Kursi tersedia:")
+    for k in jadwal_ditemukan.get('kursi', []):
+        print(f"[{k['nomor']}]", end=" ")
+    print()

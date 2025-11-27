@@ -79,10 +79,12 @@ def hapus_jadwal():
 
     # Feedback detail
     harga_rupiah = "Rp {:,}".format(jadwal_dihapus['harga']).replace(",", ".")
+    nama_maskapai = jadwal_dihapus.get("nama_maskapai") or jadwal_dihapus.get("nama_pesawat","-")
+
     print("\n✅ Jadwal penerbangan berhasil dihapus!")
     print(f"Kode: {jadwal_dihapus['kode']}")
     print(f"Asal: {jadwal_dihapus['asal']} → Tujuan: {jadwal_dihapus['tujuan']}")
     print(f"Tanggal: {jadwal_dihapus['tanggal']} | Jam: {jadwal_dihapus['jam']}")
     print(f"Harga: {harga_rupiah}")
-    print(f"Pesawat: {jadwal_dihapus['nama_pesawat']} ({jadwal_dihapus['jenis_pesawat']})")
+    print(f"Maskapai: {nama_maskapai} ({jadwal_dihapus.get('jenis_pesawat','-')})")
     print(f"ℹ {affected} tiket terkait ditandai CANCELLED.")
