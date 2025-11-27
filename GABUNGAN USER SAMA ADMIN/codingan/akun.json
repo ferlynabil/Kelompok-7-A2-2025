@@ -38,5 +38,13 @@
     "poy": {
         "password": "12345677890",
         "role": "user"
+    },
+    "toYy": {
+        "password": "1234",
+        "role": "user"
+    },
+    "req": {
+        "password": "4321",
+        "role": "user"
     }
 }

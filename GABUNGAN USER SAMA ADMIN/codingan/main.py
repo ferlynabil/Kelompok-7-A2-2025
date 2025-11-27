@@ -13,7 +13,6 @@ from akun_lihat import lihat_akun
 from user_menu import (
     lihat_jadwal as user_lihat_jadwal,
     pesan_tiket,
-    timbang_bagasi,
     bayar_tiket,
     lihat_tiket_user
 )
@@ -148,10 +147,9 @@ def menu_user(username):
                 choices=[
                     '1. Lihat Jadwal Penerbangan',
                     '2. Pesan Tiket',
-                    '3. Menimbang Berat Bagasi',
-                    '4. Melakukan Pembayaran',
-                    '5. Melihat Tiket yang Sudah Dibeli',
-                    '6. Logout'
+                    '3. Melakukan Pembayaran',
+                    '4. Melihat Tiket yang Sudah Dibeli',
+                    '5. Logout'
                 ]
             )
         ]
@@ -165,13 +163,11 @@ def menu_user(username):
             cls(); user_lihat_jadwal(); pause()
         elif pilih == '2. Pesan Tiket':
             cls(); pesan_tiket(username); pause()
-        elif pilih == '3. Menimbang Berat Bagasi':
-            cls(); timbang_bagasi(username); pause()
-        elif pilih == '4. Melakukan Pembayaran':
+        elif pilih == '3. Melakukan Pembayaran':
             cls(); bayar_tiket(username); pause()
-        elif pilih == '5. Melihat Tiket yang Sudah Dibeli':
+        elif pilih == '4. Melihat Tiket yang Sudah Dibeli':
             cls(); lihat_tiket_user(username); pause()
-        elif pilih == '6. Logout':
+        elif pilih == '5. Logout':
             print(Fore.GREEN + "\n✔ Logout berhasil."); pause(); break
 
 

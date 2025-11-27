@@ -44,9 +44,121 @@ def lihat_jadwal():
     print(table)
 
 # ------------------------------------------------------
-# PESAN TIKET (USER)
+# PESAN TIKET (USER) + BAGASI TERINTEGRASI
 # ------------------------------------------------------
 def pesan_tiket(username):
+    os.system("cls")
+    jadwal = load_json("jadwal.json")
+    if not jadwal:
+        print("❌ Jadwal kosong.")
+        return
+
+    print("=== PILIH JADWAL ===\n")
+    table = PrettyTable()
+    table.field_names = ["ID", "Kode", "Asal", "Tujuan", "Tanggal", "Jam", "Harga", "Maskapai", "Jenis Pesawat", "Kursi Tersedia"]
+
+    pilihan_list = []
+    for i, j in enumerate(jadwal):
+        kursi_tersedia = sum(1 for k in j.get("kursi", []) if k.get("status") == "kosong")
+        table.add_row([
+            i+1, j["kode"], j["asal"], j["tujuan"], j["tanggal"], j["jam"],
+            f"Rp {j['harga']:,}", j.get("nama_maskapai","-"), j.get("jenis_pesawat","-"),
+            kursi_tersedia
+        ])
+        pilihan_list.append(
+            f"{i+1}. {j['asal']} → {j['tujuan']} ({j['tanggal']} {j['jam']}) - Rp {j['harga']} | {j.get('nama_maskapai','-')}"
+        )
+
+    print(table)
+
+    jawaban = inquirer.prompt([inquirer.List("pilih", message="Pilih jadwal:", choices=pilihan_list + ["❌ Batal"])])
+    if jawaban is None or jawaban["pilih"] == "❌ Batal":
+        print("❌ Pemesanan dibatalkan.")
+        return
+
+    index = int(jawaban["pilih"].split(".")[0]) - 1
+    data = jadwal[index]
+
+    # =======================
+    # PILIH KURSI
+    # =======================
+    kursi_tersedia = [k["nomor"] for k in data.get("kursi", []) if k.get("status") == "kosong"]
+    if not kursi_tersedia:
+        print("❌ Tidak ada kursi tersedia.")
+        return
+
+    kursi_jawab = inquirer.prompt([inquirer.List("kursi", message="Pilih kursi:", choices=kursi_tersedia + ["❌ Batal"])])
+    if kursi_jawab is None or kursi_jawab["kursi"] == "❌ Batal":
+        print("❌ Pemesanan dibatalkan.")
+        return
+
+    kursi_dipilih = kursi_jawab["kursi"]
+
+    # =======================
+    # INPUT BAGASI LANGSUNG DI SINI
+    # =======================
+    while True:
+        b = inquirer.prompt([inquirer.Text("berat", message="Masukkan berat bagasi (kg)")])
+        if b is None:
+            print("❌ Dibatalkan.")
+            return
+
+        try:
+            berat = float(b["berat"])
+        except:
+            print("❌ Berat harus angka!")
+            continue
+
+        if berat < 0:
+            print("❌ Berat tidak boleh minus!")
+            continue
+
+        break
+
+    # Hitung denda bagasi
+    if berat <= 15:
+        denda_bagasi = 0
+        print(f"\n✔ Bagasi {berat} kg — GRATIS")
+    else:
+        kelebihan = berat - 15
+        denda_bagasi = kelebihan * 20000
+        print(f"\n⚠ Bagasi {berat} kg — Kelebihan {kelebihan} kg")
+        print(f"Denda: Rp {denda_bagasi:,}")
+
+    total_harga = data["harga"] + denda_bagasi
+    print(f"\n💰 Total Harga Tiket + Bagasi: Rp {total_harga:,}")
+
+    # =======================
+    # SIMPAN TIKET
+    # =======================
+    tiket = load_json("tiket.json")
+    tiket.append({
+        "user": username,
+        "kode": data["kode"],
+        "asal": data["asal"],
+        "tujuan": data["tujuan"],
+        "tanggal": data["tanggal"],
+        "jam": data["jam"],
+        "harga": total_harga,
+        "harga_tiket": data["harga"],
+        "bagasi": berat,
+        "denda_bagasi": denda_bagasi,
+        "kursi": kursi_dipilih,
+        "nama_maskapai": data.get("nama_maskapai","-"),
+        "jenis_pesawat": data.get("jenis_pesawat","-"),
+        "status": "pending"
+    })
+    save_json("tiket.json", tiket)
+
+    # Ubah kursi jadi X di jadwal.json
+    for k in data["kursi"]:
+        if k["nomor"] == kursi_dipilih:
+            k["status"] = "X"
+    save_json("jadwal.json", jadwal)
+
+    print("\n✅ Tiket berhasil dipesan!")
+    print("Status: PENDING (menunggu konfirmasi admin)\n")
+
     os.system("cls")
     jadwal = load_json("jadwal.json")
     if not jadwal:
@@ -149,41 +261,6 @@ def lihat_tiket_user(username):
             status
         ])
     print(table)
-
-# ------------------------------------------------------
-# TIMBANG BAGASI
-# ------------------------------------------------------
-def timbang_bagasi(username):
-    os.system("cls")
-    print("=== MENIMBANG BAGASI ===\n")
-
-    while True:
-        jawab = inquirer.prompt([inquirer.Text("berat", message="Masukkan berat bagasi (kg)")])
-        if jawab is None:
-            print("❌ Dibatalkan.")
-            return
-
-        try:
-            berat = float(jawab["berat"])
-        except ValueError:
-            print("❌ Input harus angka!")
-            continue
-
-        if berat < 0:
-            print("❌ Berat tidak boleh minus!")
-            continue
-
-        break
-
-    if berat <= 15:
-        print(f"\n✔ Berat: {berat} kg — GRATIS!")
-    else:
-        kelebihan = berat - 15
-        denda = kelebihan * 20000
-        print(f"\n⚠ Berat: {berat} kg — Kelebihan {kelebihan} kg")
-        print(f"Denda: Rp {denda:,}")
-
-    input("\nEnter untuk kembali...")
 
 # ------------------------------------------------------
 # PEMBAYARAN (USER)
